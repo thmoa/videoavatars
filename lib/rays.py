@@ -71,7 +71,12 @@ def rays_from_points(points, camera):
 
 
 def rays_from_silh(mask, camera):
-    _, contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+    if cv2.__version__[0] == '2':
+        contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    else:
+        _, contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
     silh = np.zeros_like(mask)
 
     for con in contours:

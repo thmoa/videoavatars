@@ -185,10 +185,12 @@ def fit_pose(frame, last_smpl, frustum, nohands, viz_rn):
     else:
         faces = frame.smpl.f
 
-    dist_i = cv2.distanceTransform(np.uint8(frame.mask * 255), cv2.DIST_L2, 5) - 1
+    dst_type = cv2.cv.CV_DIST_L2 if cv2.__version__[0] == '2' else cv2.DIST_L2
+
+    dist_i = cv2.distanceTransform(np.uint8(frame.mask * 255), dst_type, 5) - 1
     dist_i[dist_i < 0] = 0
     dist_i[dist_i > 50] = 50
-    dist_o = cv2.distanceTransform(255 - np.uint8(frame.mask * 255), cv2.DIST_L2, 5)
+    dist_o = cv2.distanceTransform(255 - np.uint8(frame.mask * 255), dst_type, 5)
     dist_o[dist_o > 50] = 50
 
     rn_m = ColoredRenderer(camera=frame.camera, v=frame.smpl, f=faces, vc=np.ones_like(frame.smpl), frustum=frustum,
