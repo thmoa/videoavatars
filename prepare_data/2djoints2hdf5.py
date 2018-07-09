@@ -27,7 +27,7 @@ parser.add_argument('target', type=str)
 args = parser.parse_args()
 
 out_file = args.target
-pose_dir = args.src
+pose_dir = args.src_folder
 pose_files = sorted(glob(os.path.join(pose_dir, '*.json')))
 
 with h5py.File(out_file, 'w') as f:
