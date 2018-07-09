@@ -21,6 +21,7 @@ cd ..
 
 mkdir smplify
 cd smplify
+touch __init__.py
 ln -s <path to your smplify installation>/code/models .
 # this file needs to be copied!
 cp <path to your smplify installation>/code/lib/sphere_collisions.py .
