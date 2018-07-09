@@ -12,4 +12,4 @@ if [[ $SUBJ = *"female"* ]]; then
   MODEL='--model vendor/smpl/models/basicModel_f_lbs_10_207_0_v1.0.0.pkl'
 fi
 
-python step1_pose.py $SUBJ/keypoints.hdf5 $SUBJ/masks.hdf5 $SUBJ/camera.pkl $OUT/reconstructed_poses.pkl $MODEL ${@:3}
+python step1_pose.py $SUBJ/keypoints.hdf5 $SUBJ/masks.hdf5 $SUBJ/camera.pkl $OUT/reconstructed_poses.hdf5 $MODEL ${@:3}
