@@ -177,7 +177,7 @@ if __name__ == '__main__':
         help="ICP Iterations")
     parser.add_argument(
         '--model', '-m',
-        default='vendor/smpl/models/basicModel_m_lbs_10_207_0_v1.0.0.pkl',
+        default='vendor/smpl/models/basicmodel_m_lbs_10_207_0_v1.0.0.pkl',
         help='Path to SMPL model')
     parser.add_argument(
         '--first_frame', '-f', default=0, type=int,

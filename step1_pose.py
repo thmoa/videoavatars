@@ -350,7 +350,7 @@ if __name__ == '__main__':
         help="Out file path")
     parser.add_argument(
         '--model', '-m',
-        default='vendor/smpl/models/basicModel_m_lbs_10_207_0_v1.0.0.pkl',
+        default='vendor/smpl/models/basicmodel_m_lbs_10_207_0_v1.0.0.pkl',
         help='Path to SMPL model')
     parser.add_argument(
         '--prior', '-p',
