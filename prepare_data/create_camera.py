@@ -18,9 +18,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument('out', type=str, help="Output file (.pkl)")
 parser.add_argument('width', type=int, help="Frame width in px")
 parser.add_argument('height', type=int, help="Frame height in px")
-parser.add_argument('-f', type=float, nargs='?', help="Focal length in px (2,)")
-parser.add_argument('-c', type=float, nargs='?', help="Principal point in px (2,)")
-parser.add_argument('-k', type=float, nargs='?', help="Distortion coefficients (5,)")
+parser.add_argument('-f', type=float, nargs='*', help="Focal length in px (2,)")
+parser.add_argument('-c', type=float, nargs='*', help="Principal point in px (2,)")
+parser.add_argument('-k', type=float, nargs='*', help="Distortion coefficients (5,)")
 
 args = parser.parse_args()
 
