@@ -10,7 +10,7 @@ import cPickle as pkl
 This script creates a .pkl file using the given camera intrinsics.
 
 Example:
-$ python camera.pkl 1080 1080 -f 900.0 900.0
+$ python create_camera.py camera.pkl 1080 1080 -f 900.0 900.0
 
 """
 
