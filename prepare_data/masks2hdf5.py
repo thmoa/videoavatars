@@ -20,7 +20,7 @@ $ python masks2hdf5.py dataset/subject/masks masks.hdf5
 """
 
 parser = argparse.ArgumentParser()
-parser.add_argument('src_folder', type=str)
+parser.add_argument('src', type=str)
 parser.add_argument('target', type=str)
 
 args = parser.parse_args()
