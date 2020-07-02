@@ -14,7 +14,6 @@ git clone https://github.com/thmoa/videoavatars.git videoavatars
 cd videoavatars/vendor
 mkdir smpl
 cd smpl
-touch __init__.py
 ln -s <path to smpl folder>/models .
 ln -s <path to smpl folder>/smpl_webuser/*.py .
 cd ..
