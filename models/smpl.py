@@ -3,7 +3,7 @@
 
 import chumpy as ch
 import numpy as np
-import cPickle as pkl
+import pickle as pkl
 import scipy.sparse as sp
 from chumpy.ch import Ch
 from vendor.smpl.posemapper import posemap, Rodrigues
@@ -73,8 +73,10 @@ class Smpl(Ch):
     def _set_up(self):
         self.v_shaped = self.shapedirs.dot(self.betas) + self.v_template
         self.v_shaped_personal = self.v_shaped + self.v_personal
-        self.J = ch.sum(self.J_regressor.T.reshape(-1, 1, 24) * self.v_shaped.reshape(-1, 3, 1), axis=0).T
-        self.v_posevariation = self.posedirs.dot(posemap(self.bs_type)(self.pose))
+        self.J = ch.sum(self.J_regressor.T.reshape(-1, 1, 24)
+                        * self.v_shaped.reshape(-1, 3, 1), axis=0).T
+        self.v_posevariation = self.posedirs.dot(
+            posemap(self.bs_type)(self.pose))
         self.v_poseshaped = self.v_shaped_personal + self.v_posevariation
 
         self.A, A_global = self._global_rigid_transformation()
@@ -83,24 +85,31 @@ class Smpl(Ch):
 
         self.V = self.A.dot(self.weights.T)
 
-        rest_shape_h = ch.hstack((self.v_poseshaped, ch.ones((self.v_poseshaped.shape[0], 1))))
-        self.v_posed = ch.sum(self.V.T * rest_shape_h.reshape(-1, 4, 1), axis=1)[:, :3]
+        rest_shape_h = ch.hstack(
+            (self.v_poseshaped, ch.ones((self.v_poseshaped.shape[0], 1))))
+        self.v_posed = ch.sum(
+            self.V.T * rest_shape_h.reshape(-1, 4, 1), axis=1)[:, :3]
         self.v = self.v_posed + self.trans
 
     def _global_rigid_transformation(self):
         results = {}
         pose = self.pose.reshape((-1, 3))
-        parent = {i: self.kintree_table[0, i] for i in range(1, self.kintree_table.shape[1])}
+        parent = {i: self.kintree_table[0, i]
+                  for i in range(1, self.kintree_table.shape[1])}
 
-        with_zeros = lambda x: ch.vstack((x, ch.array([[0.0, 0.0, 0.0, 1.0]])))
-        pack = lambda x: ch.hstack([ch.zeros((4, 3)), x.reshape((4, 1))])
+        def with_zeros(x): return ch.vstack(
+            (x, ch.array([[0.0, 0.0, 0.0, 1.0]])))
 
-        results[0] = with_zeros(ch.hstack((Rodrigues(pose[0, :]), self.J[0, :].reshape((3, 1)))))
+        def pack(x): return ch.hstack([ch.zeros((4, 3)), x.reshape((4, 1))])
+
+        results[0] = with_zeros(
+            ch.hstack((Rodrigues(pose[0, :]), self.J[0, :].reshape((3, 1)))))
 
         for i in range(1, self.kintree_table.shape[1]):
             results[i] = results[parent[i]].dot(with_zeros(ch.hstack((
                 Rodrigues(pose[i, :]),      # rotation around bone endpoint
-                (self.J[i, :] - self.J[parent[i], :]).reshape((3, 1))     # bone
+                (self.J[i, :] - self.J[parent[i], :]
+                 ).reshape((3, 1))     # bone
             ))))
 
         results = [results[i] for i in sorted(results.keys())]
@@ -162,7 +171,8 @@ def joints_coco(smpl):
 
 
 def model_params_in_camera_coords(trans, pose, J0, camera_t, camera_rt):
-    root = Rodrigues(np.matmul(Rodrigues(camera_rt).r, Rodrigues(pose[:3]).r)).r.reshape(-1)
+    root = Rodrigues(np.matmul(Rodrigues(camera_rt).r,
+                     Rodrigues(pose[:3]).r)).r.reshape(-1)
     pose[:3] = root
 
     trans = (Rodrigues(camera_rt).dot(J0 + trans) - J0 + camera_t).r
@@ -171,7 +181,8 @@ def model_params_in_camera_coords(trans, pose, J0, camera_t, camera_rt):
 
 
 if __name__ == '__main__':
-    smpl = Smpl(model='../vendor/smpl/models/basicModel_f_lbs_10_207_0_v1.0.0.pkl')
+    smpl = Smpl(
+        model='../vendor/smpl/models/basicModel_f_lbs_10_207_0_v1.0.0.pkl')
     smpl.pose[:] = np.random.randn(72) * .2
     smpl.pose[0] = np.pi
     # smpl.v_personal[:] = np.random.randn(*smpl.shape) / 500.
@@ -204,6 +215,6 @@ if __name__ == '__main__':
     import cv2
 
     cv2.imshow('render_SMPL', rn.r)
-    print ('..Print any key while on the display window')
+    print('..Print any key while on the display window')
     cv2.waitKey(0)
     cv2.destroyAllWindows()
