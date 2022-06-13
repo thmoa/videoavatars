@@ -1,0 +1,42 @@
+name: 360_vdo_reconstruck
+channels:
+  - defaults
+dependencies:
+  - _libgcc_mutex=0.1
+  - _openmp_mutex=4.5
+  - ca-certificates=2022.4.26
+  - certifi=2021.10.8
+  - ld_impl_linux-64=2.35.1
+  - libffi=3.3
+  - libgcc-ng=9.3.0
+  - libgomp=9.3.0
+  - libstdcxx-ng=9.3.0
+  - ncurses=6.3
+  - openssl=1.1.1o
+  - pip=21.2.2
+  - python=3.7.13
+  - readline=8.1.2
+  - setuptools=61.2.0
+  - sqlite=3.38.3
+  - tk=8.6.11
+  - wheel=0.37.1
+  - xz=5.2.5
+  - zlib=1.2.12
+  - pip:
+    - cached-property==1.5.2
+    - chumpy==0.70
+    - cycler==0.11.0
+    - cython==0.29.28
+    - h5py==3.6.0
+    - kiwisolver==1.4.2
+    - matplotlib==2.2.5
+    - numpy==1.21.6
+    - opencv-python==4.5.5.64
+    - opendr==0.77
+    - pyparsing==3.0.8
+    - python-dateutil==2.8.2
+    - pytz==2022.1
+    - scipy==1.7.3
+    - six==1.16.0
+    - tqdm==4.64.0
+    - typing-extensions==4.2.0
