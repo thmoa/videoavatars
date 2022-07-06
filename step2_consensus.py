@@ -5,7 +5,7 @@ import h5py
 import argparse
 import numpy as np
 import chumpy as ch
-import cPickle as pkl
+import pickle as pkl
 
 from opendr.camera import ProjectPoints
 from opendr.renderer import BoundaryRenderer, ColoredRenderer
@@ -43,7 +43,8 @@ def fit_consensus(frames, base_smpl, camera, frustum, model_data, nohands, icp_c
     else:
         faces = base_smpl.f
 
-    vis_rn_b = BoundaryRenderer(camera=camera, frustum=frustum, f=faces, num_channels=1)
+    vis_rn_b = BoundaryRenderer(
+        camera=camera, frustum=frustum, f=faces, num_channels=1)
     vis_rn_m = ColoredRenderer(camera=camera, frustum=frustum, f=faces, vc=np.zeros_like(base_smpl), bgcolor=1,
                                num_channels=1)
 
@@ -55,8 +56,10 @@ def fit_consensus(frames, base_smpl, camera, frustum, model_data, nohands, icp_c
     g_symmetry = regularize_symmetry()
 
     for step, (w_laplace, w_model, w_symmetry, sigma) in enumerate(zip(
-            np.linspace(6.5, 4.0, icp_count) if naked else np.linspace(4.0, 2.0, icp_count),
-            np.linspace(0.9, 0.6, icp_count) if naked else np.linspace(0.6, 0.3, icp_count),
+            np.linspace(6.5, 4.0, icp_count) if naked else np.linspace(
+                4.0, 2.0, icp_count),
+            np.linspace(0.9, 0.6, icp_count) if naked else np.linspace(
+                0.6, 0.3, icp_count),
             np.linspace(3.6, 1.8, icp_count),
             np.linspace(0.06, 0.003, icp_count),
     )):
@@ -78,7 +81,11 @@ def fit_consensus(frames, base_smpl, camera, frustum, model_data, nohands, icp_c
 
         log.info('## Matching rays with contours')
         for current, f in enumerate(tqdm(frames)):
-            E['silh_{}'.format(current)] = ray_objective(f, sigma, base_smpl, camera, vis_rn_b, vis_rn_m)
+            try:
+                E['silh_{}'.format(current)] = ray_objective(
+                    f, sigma, base_smpl, camera, vis_rn_b, vis_rn_m)
+            except:
+                continue
 
         log.info('## Run optimization')
         ch.minimize(
@@ -86,7 +93,8 @@ def fit_consensus(frames, base_smpl, camera, frustum, model_data, nohands, icp_c
             [base_smpl.v_personal, model_template.betas],
             method='dogleg',
             options={'maxiter': 15, 'e_3': 0.001},
-            callback=get_cb(frames[0], base_smpl, camera, frustum) if display else None
+            callback=get_cb(frames[0], base_smpl, camera,
+                            frustum) if display else None
         )
 
 
@@ -95,10 +103,14 @@ def main(pose_file, masks_file, camera_file, out, obj_out, num, icp_count, model
 
     # load data
     with open(model_file, 'rb') as fp:
-        model_data = pkl.load(fp)
+        u = pkl._Unpickler(fp)
+        u.encoding = 'latin1'
+        model_data = u.load()
 
     with open(camera_file, 'rb') as fp:
-        camera_data = pkl.load(fp)
+        u = pkl._Unpickler(fp)
+        u.encoding = 'latin1'
+        camera_data = u.load()
 
     pose_data = h5py.File(pose_file, 'r')
     poses = pose_data['pose'][first_frame:last_frame]
@@ -106,7 +118,8 @@ def main(pose_file, masks_file, camera_file, out, obj_out, num, icp_count, model
     masks = h5py.File(masks_file, 'r')['masks'][first_frame:last_frame]
     num_frames = masks.shape[0]
 
-    indices_consensus = np.ceil(np.arange(num) * num_frames * 1. / num).astype(np.int)
+    indices_consensus = np.ceil(
+        np.arange(num) * num_frames * 1. / num).astype(np.int64)
 
     # init
     base_smpl = Smpl(model_data)
@@ -116,7 +129,8 @@ def main(pose_file, masks_file, camera_file, out, obj_out, num, icp_count, model
                            f=camera_data['camera_f'], k=camera_data['camera_k'], v=base_smpl)
     camera_t = camera_data['camera_t']
     camera_rt = camera_data['camera_rt']
-    frustum = {'near': 0.1, 'far': 1000., 'width': int(camera_data['width']), 'height': int(camera_data['height'])}
+    frustum = {'near': 0.1, 'far': 1000., 'width': int(
+        camera_data['width']), 'height': int(camera_data['height'])}
     frames = []
 
     for i in indices_consensus:
@@ -126,11 +140,13 @@ def main(pose_file, masks_file, camera_file, out, obj_out, num, icp_count, model
         pose_i = np.array(poses[i], dtype=np.float32)
         trans_i = np.array(trans[i], dtype=np.float32)
 
-        frames.append(setup_frame_rays(base_smpl, camera, camera_t, camera_rt, pose_i, trans_i, mask))
+        frames.append(setup_frame_rays(base_smpl, camera,
+                      camera_t, camera_rt, pose_i, trans_i, mask))
 
     log.info('Set up complete.')
     log.info('Begin consensus fit...')
-    fit_consensus(frames, base_smpl, camera, frustum, model_data, nohands, icp_count, naked, display)
+    fit_consensus(frames, base_smpl, camera, frustum,
+                  model_data, nohands, icp_count, naked, display)
 
     with open(out, 'wb') as fp:
         pkl.dump({

@@ -5,7 +5,7 @@ import cv2
 import h5py
 import argparse
 import numpy as np
-import cPickle as pkl
+import pickle as pkl
 
 from opendr.renderer import ColoredRenderer
 from opendr.camera import ProjectPoints
@@ -21,20 +21,27 @@ def main(consensus_file, camera_file, video_file, pose_file, masks_file, out, mo
          first_frame, last_frame, display):
     # load data
     with open(model_file, 'rb') as fp:
-        model_data = pkl.load(fp)
+        u = pkl._Unpickler(fp)
+        u.encoding = 'latin1'
+        model_data = u.load()
 
     with open(camera_file, 'rb') as fp:
-        camera_data = pkl.load(fp)
+        u = pkl._Unpickler(fp)
+        u.encoding = 'latin1'
+        camera_data = u.load()
 
     with open(consensus_file, 'rb') as fp:
-        consensus_data = pkl.load(fp)
+        u = pkl._Unpickler(fp)
+        u.encoding = 'latin1'
+        consensus_data = u.load()
 
     pose_data = h5py.File(pose_file, 'r')
     poses = pose_data['pose'][first_frame:last_frame]
     trans = pose_data['trans'][first_frame:last_frame]
     masks = h5py.File(masks_file, 'r')['masks'][first_frame:last_frame]
     num_frames = masks.shape[0]
-    indices_texture = np.ceil(np.arange(num) * num_frames * 1. / num).astype(np.int)
+    indices_texture = np.ceil(
+        np.arange(num) * num_frames * 1. / num).astype(np.int64)
 
     vt = np.load('assets/basicModel_vt.npy')
     ft = np.load('assets/basicModel_ft.npy')
@@ -49,8 +56,10 @@ def main(consensus_file, camera_file, video_file, pose_file, masks_file, out, mo
     iso_vis = IsoColoredRenderer(vt, ft, base_smpl.f, resolution)
     camera = ProjectPoints(t=camera_data['camera_t'], rt=camera_data['camera_rt'], c=camera_data['camera_c'],
                            f=camera_data['camera_f'], k=camera_data['camera_k'], v=base_smpl)
-    frustum = {'near': 0.1, 'far': 1000., 'width': int(camera_data['width']), 'height': int(camera_data['height'])}
-    rn_vis = ColoredRenderer(f=base_smpl.f, frustum=frustum, camera=camera, num_channels=1)
+    frustum = {'near': 0.1, 'far': 1000., 'width': int(
+        camera_data['width']), 'height': int(camera_data['height'])}
+    rn_vis = ColoredRenderer(
+        f=base_smpl.f, frustum=frustum, camera=camera, num_channels=1)
 
     cap = cv2.VideoCapture(video_file)
     for _ in range(first_frame):
@@ -84,18 +93,25 @@ def main(consensus_file, camera_file, video_file, pose_file, masks_file, out, mo
 
             proj = camera.r
             in_viewport = np.logical_and(
-                np.logical_and(np.round(camera.r[:, 0]) >= 0, np.round(camera.r[:, 0]) < frustum['width']),
-                np.logical_and(np.round(camera.r[:, 1]) >= 0, np.round(camera.r[:, 1]) < frustum['height']),
+                np.logical_and(np.round(camera.r[:, 0]) >= 0, np.round(
+                    camera.r[:, 0]) < frustum['width']),
+                np.logical_and(np.round(camera.r[:, 1]) >= 0, np.round(
+                    camera.r[:, 1]) < frustum['height']),
             )
             in_mask = np.zeros(camera.shape[0], dtype=np.bool)
-            idx = np.round(proj[in_viewport][:, [1, 0]].T).astype(np.int).tolist()
+            idx = np.round(proj[in_viewport][:, [1, 0]].T).astype(
+                np.int64).tolist()
             in_mask[in_viewport] = mask[idx]
 
             faces_in_mask = np.where(np.min(in_mask[base_smpl.f], axis=1))[0]
             visible_faces = np.intersect1d(faces_in_mask, visibility[visible])
 
             # get the current unwrap
-            part_tex = iso.render(frame / 255., camera, visible_faces)
+            try:
+                part_tex = iso.render(frame / 255., camera, visible_faces)
+            except:
+                i += 1
+                continue
 
             # angle under which the texels have been seen
             points = np.hstack((proj, np.ones((proj.shape[0], 1))))
@@ -114,9 +130,12 @@ def main(consensus_file, camera_file, video_file, pose_file, masks_file, out, mo
             # update best seen texels
             where = np.argmax(np.atleast_3d(iso_normals) - normal_agg, axis=2)
 
-            idx = np.dstack((static_indices[0], static_indices[1], where))[part_mask == 1]
-            tex_agg[list(idx[:, 0]), list(idx[:, 1]), list(idx[:, 2])] = part_tex[part_mask == 1]
-            normal_agg[list(idx[:, 0]), list(idx[:, 1]), list(idx[:, 2])] = iso_normals[part_mask == 1]
+            idx = np.dstack((static_indices[0], static_indices[1], where))[
+                part_mask == 1]
+            tex_agg[list(idx[:, 0]), list(idx[:, 1]), list(
+                idx[:, 2])] = part_tex[part_mask == 1]
+            normal_agg[list(idx[:, 0]), list(idx[:, 1]), list(
+                idx[:, 2])] = iso_normals[part_mask == 1]
 
             if display:
                 im.show(part_tex, id='part_tex', waittime=1)
@@ -140,7 +159,8 @@ def main(consensus_file, camera_file, video_file, pose_file, masks_file, out, mo
     kernel = np.ones((kernel_size, kernel_size), np.uint8)
     inpaint_area = cv2.dilate(tex_mask, kernel) - mask_final
 
-    tex_final = cv2.inpaint(np.uint8(tex_median * 255), np.uint8(inpaint_area * 255), 3, cv2.INPAINT_TELEA)
+    tex_final = cv2.inpaint(np.uint8(tex_median * 255),
+                            np.uint8(inpaint_area * 255), 3, cv2.INPAINT_TELEA)
 
     cv2.imwrite(out, tex_final)
     log.info('Done.')

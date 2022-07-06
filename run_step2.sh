@@ -9,7 +9,7 @@ SUBJ="$1"
 OUT="$2"
 
 if [[ $SUBJ = *"female"* ]]; then
-  MODEL='--model vendor/smpl/models/basicModel_f_lbs_10_207_0_v1.0.0.pkl'
+  MODEL='--model vendor/smpl/models/basicModel_m_lbs_10_207_0_v1.0.0.pkl'
 fi
 
-python step2_consensus.py $SUBJ/reconstructed_poses.hdf5 $SUBJ/masks.hdf5 $SUBJ/camera.pkl $OUT/consensus.pkl --obj_out $OUT/consensus.obj $MODEL ${@:3}
+python step2_consensus.py $SUBJ/reconstructed_poses.hdf5 $SUBJ/masks.hdf5 $SUBJ/camera.pkl $OUT/consensus.pkl --obj_out $OUT/consensus.obj $MODEL ${@:3} 
